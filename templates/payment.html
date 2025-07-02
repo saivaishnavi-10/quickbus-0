@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuickBus - Secure Payment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .fare-summary {
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .fare-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .btn-pay {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-pay:hover {
+      background-color: #0056b3;
+    }
+
+    .success {
+      color: green;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Payment Gateway</h2>
+
+    <div class="form-group">
+      <label for="cardNumber">Card Number</label>
+      <input type="text" id="cardNumber" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" />
+    </div>
+
+    <div class="form-group">
+      <label for="expiry">Expiry Date</label>
+      <input type="month" id="expiry" />
+    </div>
+
+    <div class="form-group">
+      <label for="cvv">CVV</label>
+      <input type="password" id="cvv" maxlength="4" placeholder="XXX" />
+    </div>
+
+    <div class="form-group">
+      <label for="cardHolderName">Cardholder Name</label>
+      <input type="text" id="cardHolderName" placeholder="Your Name" />
+    </div>
+
+    <div class="form-group">
+      <label for="studentId">Student ID Card Number (Optional for Discount)</label>
+      <input type="text" id="studentId" placeholder="Enter your student ID if available" />
+    </div>
+
+    <div class="fare-summary">
+      <h3>Fare Summary</h3>
+      <div class="fare-row">
+        <span>Base Fare:</span>
+        <span id="baseFare">₹0</span>
+      </div>
+      <div class="fare-row">
+        <span>GST:</span>
+        <span id="gst">₹0</span>
+      </div>
+      <div class="fare-row" id="discountRow" style="display: none;">
+        <span>Student Discount:</span>
+        <span id="discount">-₹0</span>
+      </div>
+      <div class="fare-row" style="font-weight: bold;">
+        <span>Total Payable:</span>
+        <span id="totalPayable">₹0</span>
+      </div>
+    </div>
+
+    <button class="btn-pay" onclick="processPayment()">Pay & Confirm Booking</button>
+
+    <div id="paymentMessage"></div>
+  </div>
+
+  <script>
+    let currentBookingDetails = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const storedBookingDetails = localStorage.getItem('quickBusBookingDetails');
+      const paymentMessageDiv = document.getElementById('paymentMessage');
+      const payButton = document.querySelector('.btn-pay');
+
+      if (storedBookingDetails) {
+        currentBookingDetails = JSON.parse(storedBookingDetails);
+        updateFareSummaryDisplay(currentBookingDetails);
+
+        const studentIdInput = document.getElementById('studentId');
+        if (currentBookingDetails.studentId) {
+          studentIdInput.value = currentBookingDetails.studentId;
+        }
+        studentIdInput.addEventListener('input', updateFareSummaryOnPaymentPage);
+      } else {
+        paymentMessageDiv.innerHTML = '<div class="error">No booking details found. Please go back and select a bus.</div>';
+        payButton.disabled = true;
+      }
+
+      document.getElementById('cardNumber').addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\s/g, '');
+        let formatted = '';
+        for (let i = 0; i < value.length; i++) {
+          if (i > 0 && i % 4 === 0) formatted += ' ';
+          formatted += value[i];
+        }
+        e.target.value = formatted;
+      });
+    });
+
+    function updateFareSummaryDisplay(details) {
+      document.getElementById('baseFare').textContent = `₹${details.baseFare}`;
+      document.getElementById('gst').textContent = `₹${details.gst}`;
+      document.getElementById('totalPayable').textContent = `₹${details.finalPrice}`;
+      if (details.discountApplied) {
+        document.getElementById('discountRow').style.display = 'flex';
+        document.getElementById('discount').textContent = `-₹${details.studentDiscount.toFixed(2)}`;
+      } else {
+        document.getElementById('discountRow').style.display = 'none';
+      }
+    }
+
+    function updateFareSummaryOnPaymentPage() {
+      const studentId = document.getElementById('studentId').value.trim();
+      const discountRate = 10;
+      let base = currentBookingDetails.baseFare;
+      let gst = currentBookingDetails.gst;
+      let discount = 0;
+
+      if (studentId !== '') {
+        discount = (base + gst) * discountRate / 100;
+        currentBookingDetails.discountApplied = true;
+      } else {
+        currentBookingDetails.discountApplied = false;
+      }
+
+      currentBookingDetails.studentId = studentId;
+      currentBookingDetails.studentDiscount = discount;
+      currentBookingDetails.finalPrice = base + gst - discount;
+
+      updateFareSummaryDisplay(currentBookingDetails);
+    }
+
+    function processPayment() {
+      const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+      const expiry = document.getElementById('expiry').value;
+      const cvv = document.getElementById('cvv').value;
+      const cardName = document.getElementById('cardHolderName').value.trim();
+      const msg = document.getElementById('paymentMessage');
+
+      if (!/^\d{13,19}$/.test(cardNumber)) return msg.innerHTML = '<div class="error">Invalid card number.</div>';
+      if (!expiry) return msg.innerHTML = '<div class="error">Enter expiry date.</div>';
+      if (!/^\d{3,4}$/.test(cvv)) return msg.innerHTML = '<div class="error">Invalid CVV.</div>';
+      if (!cardName) return msg.innerHTML = '<div class="error">Cardholder name required.</div>';
+
+      msg.innerHTML = '<div class="success">Processing payment...</div>';
+      document.querySelector('.btn-pay').disabled = true;
+
+      setTimeout(() => {
+        msg.innerHTML = '<div class="success">Payment successful! Booking confirmed.</div>';
+
+        // ✅ FIX: Ensure all important fields are present before storing
+        if (!currentBookingDetails.from) currentBookingDetails.from = "Hyderabad";
+        if (!currentBookingDetails.to) currentBookingDetails.to = "Vijayawada";
+        if (!currentBookingDetails.journeyDate) currentBookingDetails.journeyDate = "2025-06-15";
+        if (!currentBookingDetails.departureTime) currentBookingDetails.departureTime = "10:00 AM";
+
+        // Save to ticket
+        localStorage.removeItem('quickBusBookingDetails');
+        localStorage.setItem('quickBusTicketDetails', JSON.stringify(currentBookingDetails));
+
+        setTimeout(() => {
+          const amount = currentBookingDetails.finalPrice;
+          alert(`🎉 Booking Successful!\nBus: ${currentBookingDetails.busName}\nSeats: ${currentBookingDetails.selectedSeats.join(', ')}\nTotal Paid: ₹${amount}`);
+          window.location.href = '/ticket';
+        }, 1000);
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
