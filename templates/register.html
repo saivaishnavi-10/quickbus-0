@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - QuickBus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #56ccf2, #2f80ed);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .register-container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+
+    .register-container h2 {
+      color: #2f80ed;
+      font-size: 30px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+      display: block;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      font-size: 16px;
+    }
+
+    .form-group input:focus {
+      border-color: #2f80ed;
+      box-shadow: 0 0 10px rgba(47, 128, 237, 0.5);
+      outline: none;
+    }
+
+    .register-button {
+      background: linear-gradient(to right, #2f80ed, #56ccf2);
+      color: white;
+      font-size: 18px;
+      padding: 14px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .register-button:hover {
+      transform: scale(1.05);
+    }
+
+    .login-link {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .login-link a {
+      color: #2f80ed;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    .error-msg {
+      color: red;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="register-container">
+    <h2>Create Your QuickBus Account</h2>
+
+    {% if error %}
+      <p class="error-msg">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="/register">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" name="name" id="name" placeholder="Enter your full name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" name="email" id="email" placeholder="Enter your email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Create Password</label>
+        <input type="password" name="password" id="password" placeholder="Create a password" required />
+      </div>
+
+      <button type="submit" class="register-button">Register</button>
+
+      <div class="login-link">
+        Already have an account? <a href="/login">Login</a>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>
