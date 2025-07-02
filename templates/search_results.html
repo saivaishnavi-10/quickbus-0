@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuickBus - Available Buses</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  :root { --primary-blue:#42a5f5;--secondary-blue:#2196f3;--dark-blue:#1976d2; --light-blue:#e0f2f7;--green:#66bb6a;--dark-green:#43a047; --red:#ef5350;--booked-red:#ff8a80;--gray:#e0e0e0; --dark-gray:#757575;--text-color:#333;--white:#fff; --light-bg:#fdfdfd;--shadow-light:rgba(0,0,0,.1); --shadow-medium:rgba(0,0,0,.15);--shadow-heavy:rgba(0,0,0,.4); }
+  body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,var(--light-blue),#f0fcfc);color:var(--text-color);margin:40px 15px;line-height:1.6;}
+  h2{text-align:center;margin-bottom:30px;font-weight:700;font-size:2.5rem;background:linear-gradient(90deg,var(--primary-blue),var(--secondary-blue));background: linear-gradient(to right, #f00, #00f); background-clip: text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:1px 1px 2px rgba(0,0,0,.1);}
+  .accordion{max-width:700px;margin:25px auto;background:var(--white);border-radius:15px;box-shadow:0 10px 30px var(--shadow-light);overflow:hidden;transition:box-shadow .3s ease,transform .2s ease;}
+  .accordion:hover{box-shadow:0 15px 40px var(--shadow-medium);transform:translateY(-3px);}
+  .accordion-header{background:linear-gradient(135deg,var(--primary-blue),var(--secondary-blue));color:white;padding:20px 28px;cursor:pointer;user-select:none;font-weight:600;font-size:1.35rem;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid rgba(255,255,255,.2);transition:background .3s ease,border-bottom .3s ease;}
+  .accordion-header:hover{background:linear-gradient(135deg,var(--secondary-blue),var(--dark-blue));}
+  .accordion-header.active{background:linear-gradient(135deg,var(--dark-blue),#1565c0);border-bottom:2px solid var(--primary-blue);}
+  .accordion-header .arrow{font-size:1.5rem;transition:transform .35s ease;user-select:none;color:rgba(255,255,255,.8);}
+  .accordion-header.active .arrow{transform:rotate(90deg);}
+  .accordion-content{max-height:0;overflow:hidden;transition:max-height .4s ease-out;background:var(--light-bg);}
+  .accordion-content.open{padding:25px 28px;max-height:1500px;}
+  .bus-item{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--gray);transition:background-color .25s ease,transform .1s ease;border-radius:10px;flex-wrap:wrap;position:relative;}
+  .bus-item:last-child{border-bottom:none;}
+  .bus-item:hover{background-color:#f8f8f8;}
+  .bus-info{max-width:70%;flex:1 1 60%;}
+  .bus-name{font-weight:600;font-size:1.2rem;color:#4a4a4a;display:flex;align-items:center;}
+  .bus-name .icon{margin-right:10px;font-size:1.35rem;color:var(--primary-blue);}
+  .bus-details{font-size:.95rem;color:var(--dark-gray);margin-top:6px;}
+  .bus-price-container{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;flex:1 1 auto;}
+  .bus-price{font-weight:700;color:var(--red);min-width:80px;text-align:right;font-size:1.1rem;white-space:nowrap;margin-bottom:5px;}
+  button.book-btn{background:var(--primary-blue);color:white;border:none;padding:8px 20px;border-radius:28px;font-size:1rem;cursor:pointer;font-weight:600;margin-left:15px;box-shadow:0 5px 18px var(--shadow-heavy);transition:background-color .3s ease,box-shadow .3s ease,transform .2s ease;display:flex;align-items:center;justify-content:center;}
+  button.book-btn:hover{background:var(--secondary-blue);box-shadow:0 8px 25px rgba(33,150,243,.7);transform:translateY(-2px);}
+  button.book-btn i{margin-right:8px;}
+  .booking-form{margin-top:20px;padding-top:20px;border-top:2px dashed var(--gray);width:100%;display:none;background:var(--light-bg);border-radius:10px;padding-bottom:10px;}
+  .booking-form.active{display:block;}
+  .seat-selection{margin-bottom:25px;padding-bottom:20px;border-bottom:1px solid var(--gray);}
+  .seats-grid{display:grid;grid-template-columns:repeat(2,45px) 20px repeat(2,45px);gap:10px;margin-top:20px;justify-content:center;align-items:center;}
+  .seat{width:40px;height:40px;background-color:var(--gray);border:1px solid #b0b0b0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;transition:background-color .2s ease,transform .2s ease,box-shadow .2s ease;user-select:none;font-weight:500;color:#555;}
+  .aisle-gap{width:20px;height:40px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.7rem;font-weight:500;}
+  .seat:hover:not(.booked):not(.selected){background-color:#d8d8d8;transform:translateY(-3px);box-shadow:0 4px 10px rgba(0,0,0,.1);}
+  .seat.selected{background-color:var(--green);color:white;border-color:var(--dark-green);box-shadow:0 3px 10px rgba(102,187,106,.5);transform:scale(1.05);}
+  .seat.booked{background-color:var(--booked-red);color:white;border-color:#cc7066;cursor:not-allowed;opacity:.8;box-shadow:inset 0 0 5px rgba(0,0,0,.2);}
+  .seat.window-seat{border:2px solid #5d9cec;box-shadow:0 0 0 2px rgba(93,156,236,.3);}
+  .selected-seats-info{margin-top:20px;font-size:1rem;font-weight:600;color:var(--text-color);text-align:center;padding:10px;background-color:#f0f8ff;border-radius:8px;border:1px solid #c0e0ff;}
+  .selected-seats-info span{color:var(--primary-blue);}
+  .price-summary{text-align:center;margin-top:20px;font-size:1.1rem;font-weight:600;color:var(--text-color);padding:10px;background-color:#e8f5e9;border-radius:8px;border:1px solid var(--green);}
+  .price-summary strong{color:var(--red);font-size:1.3rem;}
+  .price-summary .discounted-price{color:var(--dark-green);font-size:1.4rem;margin-left:10px;}
+  .price-summary .original-price{text-decoration:line-through;color:var(--dark-gray);font-size:.9em;margin-right:5px;}
+  .continue-btn{background:var(--primary-blue);color:white;border:none;padding:10px 25px;border-radius:28px;font-size:1rem;cursor:pointer;font-weight:600;margin-top:20px;box-shadow:0 5px 18px var(--shadow-heavy);transition:background-color .3s ease,box-shadow .3s ease,transform .2s ease;width:100%;text-align:center;}
+  .continue-btn:hover{background:var(--secondary-blue);box-shadow:0 8px 25px rgba(33,150,243,.7);transform:translateY(-2px);}
+  .booking-form label{display:block;margin-bottom:8px;font-weight:600;color:#4a4a4a;}
+  .booking-form input[type="text"]{width:calc(100% - 22px);padding:12px;margin-bottom:18px;border:1px solid #bdbdbd;border-radius:10px;font-family:'Poppins',sans-serif;font-size:1rem;color:var(--text-color);background-color:var(--white);transition:border-color .3s ease,box-shadow .3s ease;}
+  .booking-form input[type="text"]:focus{border-color:var(--primary-blue);box-shadow:0 0 0 3px rgba(66,165,245,.3);outline:none;}
+  .booking-form button.submit-btn{background:var(--green);color:white;border:none;padding:12px 25px;border-radius:28px;font-size:1rem;cursor:pointer;font-weight:600;box-shadow:0 5px 18px rgba(102,187,106,.4);transition:background-color .3s ease,box-shadow .3s ease,transform .2s ease;width:100%;text-align:center;}
+  .booking-form button.submit-btn:hover{background:var(--dark-green);box-shadow:0 8px 25px rgba(67,160,71,.6);transform:translateY(-2px);}
+  @media (max-width:768px){ .accordion{max-width:95%;} .accordion-header{font-size:1.15rem;padding:18px 20px;} .accordion-content.open{padding:20px;} .bus-item{flex-direction:column;align-items:flex-start;padding:12px 0;} .bus-info{width:100%;max-width:100%;margin-bottom:8px;} .bus-price-container{width:100%;flex-direction:row;justify-content:space-between;margin-top:5px;} .bus-price{margin-top:0;text-align:left;min-width:auto;font-size:1rem;} button.book-btn{margin-left:0;width:auto;padding:8px 15px;font-size:.9rem;} .booking-form input[type="text"]{width:calc(100% - 20px);} .seats-grid{grid-template-columns:repeat(2,40px) 15px repeat(1,40px) 15px repeat(1,40px);gap:5px;} .seat{width:35px;height:35px;font-size:.8rem;} .aisle-gap{width:15px;height:35px;} .selected-seats-info,.price-summary{font-size:.9rem;padding:8px;} .price-summary strong{font-size:1.1rem;} .price-summary .discounted-price{font-size:1.2rem;} }
+  @media (max-width:480px){ h2{font-size:2rem;} .accordion-header{font-size:1rem;padding:15px 18px;} .accordion-content.open{padding:15px 18px;} .seats-grid{grid-template-columns:repeat(2,35px) 10px repeat(2,35px);gap:5px;} .seat{width:30px;height:30px;font-size:.75rem;} .aisle-gap{width:10px;height:30px;} }
+</style>
+</head>
+<body>
+
+<h2>Available Buses</h2>
+
+<div class="accordion">
+  <div class="accordion-header"><i class="fas fa-bus"></i> TSRTC<span class="arrow">&#9654;</span></div>
+  <div class="accordion-content">
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Volvo AC</div><div class="bus-details">08:00 AM - 12:00 PM | Total Seats: 25</div></div><div class="bus-price-container"><div class="bus-price">₹600</div><button class="book-btn" data-price="600" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_tsrtc_volvo"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_tsrtc_volvo">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_tsrtc_volvo">₹0</span> <strong><span id="totalPrice_tsrtc_volvo">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_tsrtc_volvo')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_tsrtc_volvo">Student ID (Optional):</label><input type="text" id="studentId_tsrtc_volvo" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_tsrtc_volvo', 600)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_tsrtc_volvo">₹0</span> <strong id="finalPrice_tsrtc_volvo">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Volvo AC (TSRTC)', 'studentId_tsrtc_volvo', 'seats_tsrtc_volvo')">Confirm Booking</button></div>
+      </div>
+    </div>
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Deluxe Non-AC</div><div class="bus-details">09:30 AM - 01:30 PM | Total Seats: 30</div></div><div class="bus-price-container"><div class="bus-price">₹350</div><button class="book-btn" data-price="350" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_tsrtc_deluxe"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_tsrtc_deluxe">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_tsrtc_deluxe">₹0</span> <strong><span id="totalPrice_tsrtc_deluxe">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_tsrtc_deluxe')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_tsrtc_deluxe">Student ID (Optional):</label><input type="text" id="studentId_tsrtc_deluxe" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_tsrtc_deluxe', 350)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_tsrtc_deluxe">₹0</span> <strong id="finalPrice_tsrtc_deluxe">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Deluxe Non-AC (TSRTC)', 'studentId_tsrtc_deluxe', 'seats_tsrtc_deluxe')">Confirm Booking</button></div>
+      </div>
+    </div>
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Sleeper Non-AC</div><div class="bus-details">10:00 PM - 06:00 AM | Total Seats: 15</div></div><div class="bus-price-container"><div class="bus-price">₹450</div><button class="book-btn" data-price="450" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_tsrtc_sleeper"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_tsrtc_sleeper">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_tsrtc_sleeper">₹0</span> <strong><span id="totalPrice_tsrtc_sleeper">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_tsrtc_sleeper')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_tsrtc_sleeper">Student ID (Optional):</label><input type="text" id="studentId_tsrtc_sleeper" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_tsrtc_sleeper', 450)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_tsrtc_sleeper">₹0</span> <strong id="finalPrice_tsrtc_sleeper">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Sleeper Non-AC (TSRTC)', 'studentId_tsrtc_sleeper', 'seats_tsrtc_sleeper')">Confirm Booking</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header"><i class="fas fa-bus-alt"></i> APSTRC<span class="arrow">&#9654;</span></div>
+  <div class="accordion-content">
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Express Non-AC</div><div class="bus-details">07:00 AM - 11:00 AM | Total Seats: 40</div></div><div class="bus-price-container"><div class="bus-price">₹300</div><button class="book-btn" data-price="300" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_apstrc_express"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_apstrc_express">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_apstrc_express">₹0</span> <strong><span id="totalPrice_apstrc_express">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_apstrc_express')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_apstrc_express">Student ID (Optional):</label><input type="text" id="studentId_apstrc_express" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_apstrc_express', 300)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_apstrc_express">₹0</span> <strong id="finalPrice_apstrc_express">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Express Non-AC (APSTRC)', 'studentId_apstrc_express', 'seats_apstrc_express')">Confirm Booking</button></div>
+      </div>
+    </div>
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Deluxe AC</div><div class="bus-details">01:00 PM - 05:30 PM | Total Seats: 25</div></div><div class="bus-price-container"><div class="bus-price">₹550</div><button class="book-btn" data-price="550" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_apstrc_deluxe"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_apstrc_deluxe">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_apstrc_deluxe">₹0</span> <strong><span id="totalPrice_apstrc_deluxe">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_apstrc_deluxe')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_apstrc_deluxe">Student ID (Optional):</label><input type="text" id="studentId_apstrc_deluxe" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_apstrc_deluxe', 550)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_apstrc_deluxe">₹0</span> <strong id="finalPrice_apstrc_deluxe">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Deluxe AC (APSTRC)', 'studentId_apstrc_deluxe', 'seats_apstrc_deluxe')">Confirm Booking</button></div>
+      </div>
+    </div>
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Super Luxury AC</div><div class="bus-details">08:00 PM - 12:30 AM | Total Seats: 18</div></div><div class="bus-price-container"><div class="bus-price">₹700</div><button class="book-btn" data-price="700" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_apstrc_superluxury"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_apstrc_superluxury">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_apstrc_superluxury">₹0</span> <strong><span id="totalPrice_apstrc_superluxury">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_apstrc_superluxury')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_apstrc_superluxury">Student ID (Optional):</label><input type="text" id="studentId_apstrc_superluxury" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_apstrc_superluxury', 700)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_apstrc_superluxury">₹0</span> <strong id="finalPrice_apstrc_superluxury">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Super Luxury AC (APSTRC)', 'studentId_apstrc_superluxury', 'seats_apstrc_superluxury')">Confirm Booking</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header"><i class="fas fa-bus-simple"></i> Private Operators<span class="arrow">&#9654;</span></div>
+  <div class="accordion-content">
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Volvo AC</div><div class="bus-details">09:00 AM - 01:00 PM | Total Seats: 20</div></div><div class="bus-price-container"><div class="bus-price">₹650</div><button class="book-btn" data-price="650" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_private_volvo"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_private_volvo">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_private_volvo">₹0</span> <strong><span id="totalPrice_private_volvo">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_private_volvo')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_private_volvo">Student ID (Optional):</label><input type="text" id="studentId_private_volvo" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_private_volvo', 650)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_private_volvo">₹0</span> <strong id="finalPrice_private_volvo">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Volvo AC (Private)', 'studentId_private_volvo', 'seats_private_volvo')">Confirm Booking</button></div>
+      </div>
+    </div>
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Luxury AC</div><div class="bus-details">03:00 PM - 07:00 PM | Total Seats: 22</div></div><div class="bus-price-container"><div class="bus-price">₹600</div><button class="book-btn" data-price="600" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_private_luxury"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_private_luxury">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_private_luxury">₹0</span> <strong><span id="totalPrice_private_luxury">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_private_luxury')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_private_luxury">Student ID (Optional):</label><input type="text" id="studentId_private_luxury" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_private_luxury', 600)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_private_luxury">₹0</span> <strong id="finalPrice_private_luxury">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Luxury AC (Private)', 'studentId_private_luxury', 'seats_private_luxury')">Confirm Booking</button></div>
+      </div>
+    </div>
+    <div class="bus-item"><div class="bus-info"><div class="bus-name"><span class="icon"></span>Sleeper AC</div><div class="bus-details">11:00 PM - 05:00 AM | Total Seats: 15</div></div><div class="bus-price-container"><div class="bus-price">₹750</div><button class="book-btn" data-price="750" onclick="showBookingForm(this)"><i class="fas fa-ticket-alt"></i> Book</button></div>
+      <div class="booking-form"><div class="seat-selection"><label>Select your seats:</label><div class="seats-grid" id="seats_private_sleeper"></div><div class="selected-seats-info">Selected Seats: <span id="selectedSeatsDisplay_private_sleeper">None</span></div><div class="price-summary">Total Price: <span class="original-price" id="originalPrice_private_sleeper">₹0</span> <strong><span id="totalPrice_private_sleeper">₹0</span></strong></div><button class="continue-btn" onclick="showStudentIdForm(this, 'seats_private_sleeper')">Continue to Booking</button></div>
+        <div class="student-id-form" style="display: none;"><label for="studentId_private_sleeper">Student ID (Optional):</label><input type="text" id="studentId_private_sleeper" placeholder="Enter student ID" oninput="calculateDiscountedPrice(this, 'seats_private_sleeper', 750)" /><div class="price-summary">Final Price: <span class="original-price" id="finalOriginalPrice_private_sleeper">₹0</span> <strong id="finalPrice_private_sleeper">₹0</strong></div><button class="submit-btn" onclick="confirmBooking(this, 'Sleeper AC (Private)', 'studentId_private_sleeper', 'seats_private_sleeper')">Confirm Booking</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const headers=document.querySelectorAll('.accordion-header');let selectedSeats={};const STUDENT_DISCOUNT_PERCENTAGE=10;
+  headers.forEach(h=>{h.addEventListener('click',()=>{
+    const c=h.nextElementSibling,isOpen=c.classList.contains('open');
+    document.querySelectorAll('.accordion-content.open').forEach(oc=>{if(oc!==c){
+      oc.classList.remove('open');oc.style.maxHeight=null;oc.previousElementSibling.classList.remove('active');
+      oc.querySelectorAll('.booking-form').forEach(f=>{f.classList.remove('active');f.querySelector('.student-id-form').style.display='none';f.querySelector('.seat-selection').style.display='block';});
+    }});
+    c.classList.toggle('open',!isOpen);c.style.maxHeight=isOpen?null:c.scrollHeight+"px";
+    h.classList.toggle('active',!isOpen);
+    if(isOpen)c.querySelectorAll('.booking-form').forEach(f=>{f.classList.remove('active');f.querySelector('.student-id-form').style.display='none';f.querySelector('.seat-selection').style.display='block';});
+  });});
+  function showBookingForm(b){
+    const bi=b.closest('.bus-item'),bf=bi.querySelector('.booking-form'),bp=parseInt(b.dataset.price);
+    b.closest('.accordion-content').querySelectorAll('.booking-form.active').forEach(f=>{if(f!==bf){f.classList.remove('active');f.querySelector('.student-id-form').style.display='none';f.querySelector('.seat-selection').style.display='block';}});
+    bf.classList.toggle('active');bf.querySelector('.student-id-form').style.display='none';bf.querySelector('.seat-selection').style.display='block';
+    const c=bf.closest('.accordion-content');if(c.classList.contains('open'))c.style.maxHeight=c.scrollHeight+"px";
+    const tsm=bi.querySelector('.bus-details').innerText.match(/Total Seats: (\d+)/);const ts=tsm?parseInt(tsm[1]):20;
+    generateSeats(bf.querySelector('.seats-grid').id,ts,bp);
+  }
+  function generateSeats(cid,nos,bbp){
+    const sg=document.getElementById(cid);if(!sg)return;sg.innerHTML='';selectedSeats[cid]=[];
+    const bs=new Set();for(let i=0;i<Math.floor(nos*.2);i++)bs.add(Math.floor(Math.random()*nos)+1);
+    const spr=4,ap1=2;
+    for(let i=1;i<=nos;i++){
+      const s=document.createElement('div');s.classList.add('seat');s.textContent=i;s.dataset.seatNumber=i;
+      if(((i-1)%spr===0)||((i-1)%spr===(spr-1)))s.classList.add('window-seat');
+      if(bs.has(i))s.classList.add('booked');else s.addEventListener('click',()=>toggleSeatSelection(s,cid,bbp));
+      sg.appendChild(s);
+      if(i%spr===ap1&&i<nos){const ad=document.createElement('div');ad.classList.add('aisle-gap');sg.appendChild(ad);}
+    }
+    updateSelectedSeatsDisplay(cid);updateTotalPrice(cid,bbp);
+  }
+  function toggleSeatSelection(se,cid,bbp){
+    if(se.classList.contains('booked')){alert('This seat is already booked!');return;}
+    const sn=parseInt(se.dataset.seatNumber);selectedSeats[cid]=selectedSeats[cid]||[];
+    se.classList.toggle('selected');
+    selectedSeats[cid]=se.classList.contains('selected')?[...selectedSeats[cid],sn]:selectedSeats[cid].filter(s=>s!==sn);
+    updateSelectedSeatsDisplay(cid);updateTotalPrice(cid,bbp);
+    const c=se.closest('.accordion-content');if(c&&c.classList.contains('open'))c.style.maxHeight=c.scrollHeight+"px";
+  }
+  function updateSelectedSeatsDisplay(cid){
+    document.getElementById(`selectedSeatsDisplay_${cid.split('_').slice(1).join('_')}`).textContent=selectedSeats[cid]&&selectedSeats[cid].length>0?selectedSeats[cid].sort((a,b)=>a-b).join(', '):'None';
+  }
+  function updatePriceElements(cid,top,fcp,isd){
+    const bid=cid.split('_').slice(1).join('_');
+    const els={
+      originalPrice:`originalPrice_${bid}`,totalPrice:`totalPrice_${bid}`,
+      finalOriginalPrice:`finalOriginalPrice_${bid}`,finalPrice:`finalPrice_${bid}`
+    };
+    for(const key in els){const el=document.getElementById(els[key]);if(!el)continue;
+      el.textContent=`₹${(key.includes('Original')?top:fcp).toLocaleString('en-IN')}`;
+      el.classList.toggle('discounted-price',isd&&(key.includes('Price')||key.includes('final')));
+      el.style.display=(key.includes('Original')&&!isd)?'none':'inline-block';
+    }
+  }
+  function updateTotalPrice(cid,bbp){
+    const nss=selectedSeats[cid]?selectedSeats[cid].length:0,top=nss*bbp;
+    updatePriceElements(cid,top,top,false);
+    const si=document.getElementById(`studentId_${cid.split('_').slice(1).join('_')}`);
+    if(si&&si.closest('.student-id-form').style.display!=='none')calculateDiscountedPrice(si,cid,bbp);
+  }
+  function showStudentIdForm(b,cid){
+    if((selectedSeats[cid]?selectedSeats[cid].length:0)===0){alert('Please select at least one seat first!');return;}
+    const bf=b.closest('.booking-form');bf.querySelector('.seat-selection').style.display='none';bf.querySelector('.student-id-form').style.display='block';
+    calculateDiscountedPrice(document.getElementById(`studentId_${cid.split('_').slice(1).join('_')}`),cid,parseInt(b.closest('.bus-item').querySelector('.book-btn').dataset.price));
+    const c=bf.closest('.accordion-content');if(c&&c.classList.contains('open'))c.style.maxHeight=c.scrollHeight+"px";
+  }
+  function calculateDiscountedPrice(si,cid,bbp){
+    const sid=si.value.trim(),nss=selectedSeats[cid]?selectedSeats[cid].length:0,top=nss*bbp;
+    let fcp=top;const isd=sid!=='';if(isd)fcp=top*(1-STUDENT_DISCOUNT_PERCENTAGE/100);
+    updatePriceElements(cid,top,fcp,isd);
+    const c=si.closest('.accordion-content');if(c&&c.classList.contains('open'))c.style.maxHeight=c.scrollHeight+"px";
+  }
+  function confirmBooking(b, busName, siid, gsid) {
+    const sid = document.getElementById(siid).value;
+    const ssfb = selectedSeats[gsid];
+    const nss = ssfb ? ssfb.length : 0;
+
+    if (nss === 0) {
+        alert('You must select at least one seat to confirm booking.');
+        return;
+    }
+
+    const basePricePerSeat = parseInt(b.closest('.bus-item').querySelector('.book-btn').dataset.price);
+    const baseFare = nss * basePricePerSeat;
+    const gst = baseFare * 0.05;
+    let finalPrice = baseFare + gst;
+    let studentDiscountAmount = 0;
+
+    if (sid.trim() !== '') {
+        studentDiscountAmount = finalPrice * (STUDENT_DISCOUNT_PERCENTAGE / 100);
+        finalPrice -= studentDiscountAmount;
+    }
+
+    // Define dummy values for demo (replace these with actual values from your form or search)
+    const sourceLocation = "Hyderabad";
+    const destinationLocation = "Vijayawada";
+    const selectedDate = "2025-06-22";
+    const departureTime = b.closest('.bus-item').querySelector('.bus-details').innerText.split('|')[0].trim();
+
+    const bookingDetails = {
+        busName: busName,
+        selectedSeats: ssfb,
+        baseFare: baseFare,
+        gst: gst,
+        finalPrice: finalPrice,
+        from: sourceLocation,
+        to: destinationLocation,
+        journeyDate: selectedDate,
+        departureTime: departureTime
+    };
+
+    localStorage.setItem('quickBusBookingDetails', JSON.stringify(bookingDetails));
+    window.location.href = '/payment';
+
+  }
+  document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.bus-name .icon').forEach(is=>{is.innerHTML='<i class="fas fa-bus-simple"></i>';});});
+</script>
+
+</body>
+</html>
